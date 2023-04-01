@@ -137,8 +137,11 @@ public class CompatibilityTools
         psi.RedirectStandardOutput = true;
         psi.RedirectStandardError = true;
         psi.UseShellExecute = false;
-        psi.EnvironmentVariables.Add("STEAM_COMPAT_DATA_PATH", Proton.Prefix.FullName);
-        psi.EnvironmentVariables.Add("STEAM_COMPAT_CLIENT_INSTALL_PATH", Proton.SteamRoot);
+        if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("STEAM_COMPAT_DATA_PATH")))
+        {
+            psi.EnvironmentVariables.Add("STEAM_COMPAT_DATA_PATH", Proton.Prefix.FullName);
+            psi.EnvironmentVariables.Add("STEAM_COMPAT_CLIENT_INSTALL_PATH", Proton.SteamRoot);
+        }
         if (wineD3D)
             psi.EnvironmentVariables.Add("PROTON_USE_WINED3D", "1");
         psi.Arguments = verb + " " + command;
@@ -214,27 +217,29 @@ public class CompatibilityTools
 
         if (UseProton)
         {
-            wineEnviromentVariables.Add("STEAM_COMPAT_DATA_PATH", Proton.Prefix.FullName);
-            wineEnviromentVariables.Add("STEAM_COMPAT_CLIENT_INSTALL_PATH", Proton.SteamRoot);
-            wineEnviromentVariables.Add("STEAM_COMPAT_APP_ID", Proton.SteamAppId);
-            
+            if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("STEAM_COMPAT_DATA_PATH")))
+            {
+                wineEnviromentVariables.Add("STEAM_COMPAT_DATA_PATH", Proton.Prefix.FullName);
+                wineEnviromentVariables.Add("STEAM_COMPAT_CLIENT_INSTALL_PATH", Proton.SteamRoot);
+                wineEnviromentVariables.Add("STEAM_COMPAT_APP_ID", Proton.SteamAppId);
+            }
             string compatMounts = Environment.GetEnvironmentVariable("STEAM_COMPAT_MOUNTS") ?? "";
             compatMounts = Proton.CompatMounts + (compatMounts.Equals("") ? "" : ":" + compatMounts);
             wineEnviromentVariables.Add("STEAM_COMPAT_MOUNTS", compatMounts);
 
             // User can add "PROTON_LOG=1" as env variable if they want logging. Will log to ~/.xlcore/logs/steam-<gameid>.log
-            wineEnviromentVariables.Add("PROTON_LOG_DIR", Path.Combine(Proton.Prefix.Parent.FullName, "logs"));
+            //wineEnviromentVariables.Add("PROTON_LOG_DIR", Path.Combine(Proton.Prefix.Parent.FullName, "logs"));
             if (!Settings.FsyncOn) wineEnviromentVariables.Add("PROTON_NO_FSYNC", "1");
         }
         else
         {
             wineEnviromentVariables.Add("WINEPREFIX", Settings.Prefix.FullName);
-            wineEnviromentVariables.Add("DXVK_ASYNC", dxvkAsyncOn);
             if (Settings.EsyncOn) wineEnviromentVariables.Add("WINEESYNC", "1");
             if (Settings.FsyncOn) wineEnviromentVariables.Add("WINEFSYNC", "1");
 
         }
 
+        wineEnviromentVariables.Add("DXVK_ASYNC", dxvkAsyncOn);
 
         if (!string.IsNullOrEmpty(Settings.DebugVars))
         {
@@ -252,7 +257,11 @@ public class CompatibilityTools
         };
         wineEnviromentVariables.Add("DXVK_HUD", dxvkHud);
 
-        string ldPreload = Environment.GetEnvironmentVariable("LD_PRELOAD") ?? "";
+        // Steam as compatibility tool deletes LD_PRELOAD and adds ldpreload
+        string envLD_PRELOAD = Environment.GetEnvironmentVariable("LD_PRELOAD") ?? "";
+        string envldpreload = Environment.GetEnvironmentVariable("ldpreload") ?? "";
+
+        string ldPreload = (envLD_PRELOAD == "" && envldpreload != "") ? envldpreload : envLD_PRELOAD;
         if (this.gamemodeOn == true && !ldPreload.Contains("libgamemodeauto.so.0"))
         {
             ldPreload = ldPreload.Equals("") ? "libgamemodeauto.so.0" : ldPreload + ":libgamemodeauto.so.0";
