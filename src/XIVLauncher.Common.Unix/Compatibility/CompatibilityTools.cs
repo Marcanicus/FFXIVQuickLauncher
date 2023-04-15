@@ -166,7 +166,7 @@ public class CompatibilityTools
         }
 
         wineEnviromentVariables.Add("XL_WINEONLINUX", "true");
-        string ldPreload = Environment.GetEnvironmentVariable("LD_PRELOAD") ?? "";
+        string ldPreload = GetCleanEnvironmentVariable("LD_PRELOAD", "gameoverlayrenderer.so");
 
         string dxvkHud = hudType switch
         {
@@ -289,5 +289,14 @@ public class CompatibilityTools
         psi.EnvironmentVariables.Add("WINEPREFIX", Settings.Prefix.FullName);
 
         Process.Start(psi);
+    }
+
+    private string GetCleanEnvironmentVariable(string envvar, string badstring, string separator = ":")
+    {
+        string dirty = Environment.GetEnvironmentVariable(envvar) ?? "";
+        string clean = string.Join(':', Array.FindAll<string>(dirty.Split(separator, StringSplitOptions.RemoveEmptyEntries), s => !s.Contains(badstring)));
+        Log.Verbose($"Cleaned {envvar}={dirty}, removed instances of \"{badstring}\"");
+        Log.Verbose($"New string is {envvar}={clean}");
+        return clean;
     }
 }
