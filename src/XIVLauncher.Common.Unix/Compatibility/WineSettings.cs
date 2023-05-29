@@ -27,6 +27,9 @@ public enum WineStartupType
     [SettingsDescription("RB's Wine Proton7-43", "Based on Wine-GE, but with XIV and Haptic Feedback patches applied. Includes stutter fix.")]
     Proton7_43,
 
+    [SettingsDescription("RB's Wine Proton8-7", "Proton Version 8, but with XIV and Haptic Feedback patches applied. Includes stutter fix.")]
+    Proton8_7,
+
     [SettingsDescription("Custom", "Point XIVLauncher to a custom location containing wine binaries to run the game with.")]
     Custom,
 }
@@ -92,6 +95,11 @@ public class WineSettings
             case WineStartupType.Proton7_43:
                 WineURL = "https://github.com/rankynbass/wine-ge-xiv/releases/download/xiv-Proton7-43/unofficial-wine-xiv-Proton7-43-x86_64.tar.xz";
                 WineFolder = "unofficial-wine-xiv-Proton7-43-x86_64";
+                break;
+
+            case WineStartupType.Proton8_7:
+                WineURL = "https://github.com/rankynbass/wine-ge-xiv/releases/download/xiv-Proton8-7/unofficial-wine-xiv-Proton8-7-x86_64.tar.xz";
+                WineFolder = "unofficial-wine-xiv-Proton8-7-x86_64";
                 break;
 
             case WineStartupType.Proton:
